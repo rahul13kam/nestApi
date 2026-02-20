@@ -14,8 +14,8 @@ export class AppController {
   getStudents(): any {
     return this.appService.getStudents();
   }
-    @Post()
-  createStudent(@Body() createStudentDto: CreateStudentDto): any {
-    return this.appService.createStudent(createStudentDto);
-  }
+ @Post('bulk')
+createManyStudents(@Body() students: CreateStudentDto[]): any {
+  return this.appService.createManyStudents(students);
+}
 }
