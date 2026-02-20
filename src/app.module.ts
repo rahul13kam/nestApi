@@ -7,7 +7,7 @@ import { Student } from './students/entities/student.entity';
 
 @Module({
   imports: [TypeOrmModule.forRoot({
-type: 'mysql',
+  type: 'mysql',
   host: process.env.DB_HOST || 'localhost',
   port: parseInt(process.env.DB_PORT || '3306'),
   username: process.env.DB_USER || 'nestuser',
@@ -16,6 +16,7 @@ type: 'mysql',
   entities: [Student],
   synchronize: true,
   ssl: process.env.DB_HOST ? { rejectUnauthorized: false } : false,
+  extra: process.env.DB_HOST ? { ssl: { rejectUnauthorized: false } } : {},
   }),
   TypeOrmModule.forFeature([Student])],
   controllers: [AppController],
