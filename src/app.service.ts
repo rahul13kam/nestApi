@@ -19,4 +19,9 @@ createManyStudents(students: CreateStudentDto[]): Promise<Student[]> {
   const newStudents = this.studentRepository.create(students);
   return this.studentRepository.save(newStudents);
 }
+
+async deleteStudent(id: number) {
+  const { affected } = await this.studentRepository.delete(id);
+  return { message: affected ? 'Deleted successfully' : 'Student not found' };
+}
 }
