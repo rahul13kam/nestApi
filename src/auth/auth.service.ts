@@ -17,57 +17,91 @@ export class AuthService {
         private jwtService: JwtService,
     ) {}
 
-    async register(registerDto: RegisterDto) {
-    const { name, email, password } = registerDto;
+  async register(registerDto: RegisterDto) {
+  const { name, email, password, role } = registerDto;
 
-    // check if email already exists
-    const userExist = await this.userRepository.findOne({ where: { email } });
-    if (userExist) {
-      throw new BadRequestException('Email already exists');
-    }
+  // 1️⃣ Check if email already exists
+  const existingUser = await this.userRepository.findOne({
+    where: { email },
+  });
 
-    // hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+  if (existingUser) {
+    throw new BadRequestException('Email already exists');
+  }
 
-    // save user
-    const user = this.userRepository.create({
-      name,
-      email,
-      password: hashedPassword,
-      role: 'user',
-    });
+  // 2️⃣ Prevent creating admin via API
+  if (role === 'admin') {
+    throw new BadRequestException('Cannot register as admin');
+  }
 
-    await this.userRepository.save(user);
+  // 3️⃣ Hash password
+  const hashedPassword = await bcrypt.hash(password, 10);
 
-    // create JWT payload
-    const payload = {
+  // 4️⃣ Set default role
+  const userRole = role || 'candidate';
+
+  // 5️⃣ Create user entity
+  const user = this.userRepository.create({
+    name,
+    email,
+    password: hashedPassword,
+    role: userRole,
+  });
+
+  // 6️⃣ Save to database
+  await this.userRepository.save(user);
+
+  // 7️⃣ Create JWT payload
+  const payload = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  };
+
+  // 8️⃣ Generate token
+  const accessToken = this.jwtService.sign(payload);
+
+  // 9️⃣ Return response (never return password)
+  return {
+    message: 'User registered successfully',
+    access_token: accessToken,
+    user: {
       id: user.id,
+      name: user.name,
       email: user.email,
       role: user.role,
-    };
-
-    // generate token
-    const token = this.jwtService.sign(payload);
-
-    return {
-      message: 'User registered successfully',
-      access_token: token,
-    };
-    }
+    },
+  };
+}
 
   
    // Add below register()
 async login(email: string, password: string) {
   const user = await this.userRepository.findOne({ where: { email } });
-  if (!user) throw new UnauthorizedException('Invalid email or password');
+
+  if (!user) {
+    throw new UnauthorizedException('Invalid email or password');
+  }
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new UnauthorizedException('Invalid email or password');
 
-  const payload = { id: user.id, email: user.email, role: user.role };
+  if (!isMatch) {
+    throw new UnauthorizedException('Invalid email or password');
+  }
+
+  // ✅ ROLE INCLUDED HERE
+  const payload = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  };
+
   const token = this.jwtService.sign(payload);
 
-  return { message: 'Login successful', access_token: token };
+  return {
+    message: 'Login successful',
+    access_token: token,
+  };
 }
 
 }
