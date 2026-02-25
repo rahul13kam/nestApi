@@ -20,7 +20,7 @@ import { User} from './users/entities/user.entity'
   synchronize: true,
   connectorPackage: 'mysql2',
   }),
-  TypeOrmModule.forFeature([Student]),
+ TypeOrmModule.forFeature([Student, User]),
   AuthModule,
 ],
   controllers: [AppController],

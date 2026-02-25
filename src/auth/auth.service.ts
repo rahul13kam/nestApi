@@ -5,7 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from '../users/entities/user.entity';
 import { RegisterDto } from '../users/dto/register.dto';
-
+import { UnauthorizedException } from '@nestjs/common';
 @Injectable()
 
 
@@ -17,7 +17,7 @@ export class AuthService {
         private jwtService: JwtService,
     ) {}
 
-      async register(registerDto: RegisterDto) {
+    async register(registerDto: RegisterDto) {
     const { name, email, password } = registerDto;
 
     // check if email already exists
@@ -53,5 +53,21 @@ export class AuthService {
       message: 'User registered successfully',
       access_token: token,
     };
-  }
+    }
+
+  
+   // Add below register()
+async login(email: string, password: string) {
+  const user = await this.userRepository.findOne({ where: { email } });
+  if (!user) throw new UnauthorizedException('Invalid email or password');
+
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) throw new UnauthorizedException('Invalid email or password');
+
+  const payload = { id: user.id, email: user.email, role: user.role };
+  const token = this.jwtService.sign(payload);
+
+  return { message: 'Login successful', access_token: token };
+}
+
 }
