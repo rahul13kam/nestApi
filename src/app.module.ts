@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Student } from './students/entities/student.entity';
 import { AuthModule } from './auth/auth.module';
 import { User} from './users/entities/user.entity'
+import { JobsModule } from './jobs/jobs.module';
+import { Job } from './jobs/entities/job.entity';
 
 
 @Module({
@@ -16,12 +18,13 @@ import { User} from './users/entities/user.entity'
   username: process.env.DB_USER || 'nestuser',
   password: process.env.DB_PASS || 'rahul@07',
   database: process.env.DB_NAME || 'nestjs_practice',
-  entities: [Student,User],
+  entities: [Student,User, Job],
   synchronize: true,
   connectorPackage: 'mysql2',
   }),
  TypeOrmModule.forFeature([Student, User]),
   AuthModule,
+  JobsModule,
 ],
   controllers: [AppController],
   providers: [AppService],
